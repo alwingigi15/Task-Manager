@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine  # Lightweight Postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}      # From your .env
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"  # Expose DB port for local access (optional)
+    volumes:
+      - db-data:/var/lib/postgresql/data  # Persist data
+
+  app:
+    build: .  # Builds from your Dockerfile
+    restart: always
+    depends_on:
+      - db  # Wait for DB to start
+    environment:
+      - DB_HOST=db  # Container name of DB service
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=5432
+      - PORT=8019
+      - SSL_MODE=disable
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - RATE_LIMIT=${RATE_LIMIT}
+      - AUTO_COMPLETE_MINUTES=${AUTO_COMPLETE_MINUTES}
+    ports:
+      - "8019:8019"  # Map host:container port
+
+volumes:
+  db-data:  # Named volume for DB persistence
